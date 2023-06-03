@@ -1,6 +1,13 @@
 import streamlit as st
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+import pickle
+
+def load_model():
+    # Load the machine learning model from a pickle file
+    with open('model.pkl', 'rb') as file:
+        model = pickle.load(file)
+    return model
 
 def generate_word_cloud(job_description):
     # Logic to generate word cloud based on job description
@@ -27,6 +34,10 @@ def main():
     st.title('Word Cloud')
     if st.button('Generate Word Cloud'):
         generate_word_cloud(job_description)
+    # Display the model's predictions or relevant data
+    st.title('Model Output')
+    gli5_data = model.predict(job_description)  # Example prediction, modify as needed
+    st.write("GLI5 Data:", gli5_data)
 
 if __name__ == '__main__':
     main()
