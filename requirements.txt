@@ -2,3 +2,5 @@ altair
 pandas
 streamlit
 wordcloud
+sklearn
+xgboost
