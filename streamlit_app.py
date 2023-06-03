@@ -5,7 +5,7 @@ import pickle
 
 def load_model():
     # Load the machine learning model from a pickle file
-    with open('model.pkl', 'rb') as file:
+    with open('inclusioniq_model.pkl', 'rb') as file:
         model = pickle.load(file)
     return model
 
