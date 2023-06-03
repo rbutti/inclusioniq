@@ -4,3 +4,8 @@ streamlit
 wordcloud
 scikit-learn
 xgboost
+plotly
+seaborn
+nltk
+spacy
+textstat
