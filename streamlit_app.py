@@ -10,7 +10,9 @@ def generate_word_cloud(job_description):
     plt.figure(figsize=(10, 6))
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis('off')
-    plt.show()
+
+    # Render the plot in Streamlit
+    st.pyplot(plt)
 
 def main():
     # Set page title and layout
