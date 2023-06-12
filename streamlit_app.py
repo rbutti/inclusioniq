@@ -22,6 +22,8 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Wedge, Rectangle, Circle
 import numpy as np
 import matplotlib.cm as cm
+import eli5
+import streamlit.components.v1 as components
 
 
 # all the method start with _ sign are used
@@ -229,6 +231,13 @@ def main():
         labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
         fig1 = gauge(labels=labels, colors=cols, arrow=int(df_jobs_analysis['unconscious_bias'][0]), title='Benefits Specialist (Bias: 8.8 / 10)')
         st.pyplot(fig1)
+        with open("inclusioniq_model.pkl", 'rb') as model_file:
+            model = pickle.load(model_file)
+        with open("vectorizer_dump.pkl", 'rb') as vectorizer_dump:
+            vectorizer = pickle.load(vectorizer_dump)
+        st.write(eli5.show_prediction(model, doc=job_description, vec=vectorizer,
+                                      feature_names=vectorizer.get_feature_names_out(),
+                                      top=(20, 20)))
 
 if __name__ == '__main__':
     main()

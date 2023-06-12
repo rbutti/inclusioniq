@@ -9,3 +9,5 @@ seaborn
 nltk
 spacy
 textstat
+eli5
+IPython
