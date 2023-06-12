@@ -13,6 +13,7 @@ import xgboost as xgb
 import classifier as cs
 import seaborn as sns
 import operator
+import re
 import matplotlib
 from matplotlib import cm
 from matplotlib import pyplot as plt
@@ -24,6 +25,10 @@ import numpy as np
 import matplotlib.cm as cm
 import eli5
 import streamlit.components.v1 as components
+from matplotlib.collections import PatchCollection
+from streamlit import components
+import html
+from bs4 import BeautifulSoup
 
 
 # all the method start with _ sign are used
@@ -169,12 +174,30 @@ def gauge(labels=['LOW', 'MEDIUM', 'HIGH', 'VERY HIGH', 'EXTREME'], colors='jet_
 
     labels = labels[::-1]
 
-    patches = []
-    for ang, c in zip(ang_range, colors):
-        patches.append(Wedge((0., 0.), .4, *ang, facecolor='w', lw=2))
-        patches.append(Wedge((0., 0.), .4, *ang, width=0.10, facecolor=c, lw=2, alpha=0.5))
+    # patches = []
+    # for ang, c in zip(ang_range, colors):
+    #     patches.append(Wedge((0., 0.), .4, *ang, facecolor='w', lw=2))
+    #     patches.append(Wedge((0., 0.), .4, *ang, width=0.10, facecolor=c, lw=2, alpha=0.5))
+    # # [ax.add_patch(p) for p in patches]
+    # collection = PatchCollection(patches)
+    # ax.add_collection(collection)
 
-    [ax.add_patch(p) for p in patches]
+    patches = []
+    values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # Values to color in heatmap style
+    cmap = plt.cm.get_cmap('coolwarm')  # Choose a colormap for the heatmap
+    cmap = cmap.reversed()
+    color_patches = []  # List to store colors for each patch
+
+    for ang, val in zip(ang_range, range(1, 11)):
+        color = cmap((val - 1) / 9)  # Normalize the value to range [0, 1] and get the corresponding color
+        patches.append(Wedge((0., 0.), .4, *ang, facecolor='w', lw=2))
+        if val in values:
+            patches.append(Wedge((0., 0.), .4, *ang, width=0.10, facecolor=color, lw=2, alpha=0.5))
+        color_patches.extend([color, color])
+
+    fig, ax = plt.subplots()
+    collection = PatchCollection(patches, facecolors=color_patches)
+    ax.add_collection(collection)
 
     for mid, lab in zip(mid_points, labels):
         ax.text(0.35 * np.cos(np.radians(mid)), 0.35 * np.sin(np.radians(mid)), lab,
@@ -235,9 +258,54 @@ def main():
             model = pickle.load(model_file)
         with open("vectorizer_dump.pkl", 'rb') as vectorizer_dump:
             vectorizer = pickle.load(vectorizer_dump)
-        st.write(eli5.show_prediction(model, doc=job_description, vec=vectorizer,
-                                      feature_names=vectorizer.get_feature_names_out(),
-                                      top=(20, 20)))
+
+        # Assume `prediction_html` is the string containing HTML code
+        prediction_html = eli5.show_prediction(model, doc=job_description, vec=vectorizer,
+                                               feature_names=vectorizer.get_feature_names_out(),
+                                               top=(20, 20), show_feature_values=True)
+
+        # raw_html = prediction_html._repr_html_()
+        #
+        # raw_html= raw_html.encode("utf-8")
+        #
+        # components.v1.html(raw_html)
+
+        table_style = """
+        <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        tr:nth-child(even) {
+            background-color: green;
+            color: black;
+        }
+
+        tr:nth-child(odd) {
+            background-color: white;
+            color: black;
+        }
+        </style>
+        """
+
+        # Display the tables with custom CSS styling
+        st.markdown(table_style, unsafe_allow_html=True)
+
+        res = prediction_html.data.replace("\n", "")
+        st.markdown(res, unsafe_allow_html=True)
+
+
+
+
+        # st.markdown(eli5.show_prediction(model, doc=job_description, vec=vectorizer,
+        #                               feature_names=vectorizer.get_feature_names_out(),
+        #                               top=(20, 20)))
 
 if __name__ == '__main__':
     main()

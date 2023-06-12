@@ -2,7 +2,8 @@ altair
 pandas
 streamlit
 wordcloud
-scikit-learn
+numpy == 1.11.0
+scikit-learn == 0.21.3
 xgboost
 plotly
 seaborn
