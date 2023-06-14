@@ -28,7 +28,6 @@ import streamlit.components.v1 as components
 from matplotlib.collections import PatchCollection
 from streamlit import components
 import html
-from bs4 import BeautifulSoup
 
 
 # all the method start with _ sign are used
