@@ -223,6 +223,7 @@ def main():
     st.sidebar.markdown("<span style='color:Black; text-align:justify;'>A machine learning tool to enhance diversity and inclusion in hiring processes by detecting and eliminating bias in job descriptions.</span>", unsafe_allow_html=True)
     job_title = st.sidebar.text_input('Job Title')
     job_description = st.sidebar.text_area('Job Description')
+    job_description = job_title+"<br/>"+job_description
     submit_button = st.sidebar.button('**Submit**')
 
     # Right panel
@@ -254,6 +255,12 @@ def main():
 
         # show jobdescirption
         st.header('Job Description')
+        st.markdown("<b>Legend:</b> <span style='background-color: #ffffcc;'>Masculine Words</span>, <span style='background-color: #ffd1dc;'>Feminine Words</span>, "
+                    "<span style='background-color: #bfefff;'>Superlative Words</span>, <span style='background-color: #d9f5d1;'>Relationship Words</span>, "
+                    "<span style='background-color: #e9d8fd;'>Strict Words</span>, <span style='background-color: #ffe0b2;'>Strict phrases</span>, "
+                    "<span style='background-color: #f5f5f5;'>Masculine Pronouns</span>, <span style='background-color: #e0ffff;'>Feminine Pronouns</span>, "
+                    "<span style='background-color: #e6e6fa;'>Exclusive Language</span>, <span style='background-color: #f08080;'>LGBTQ Words</span>, "
+                    "<span style='background-color: #d0f0c0;'>Racial Words</span> ", unsafe_allow_html=True)
         highlighted_paragraph = w.highlight_words(list(jd_df['mas_words'].apply(lambda d: list(d.keys())).sum()),job_description, '#ffffcc')
         highlighted_paragraph = w.highlight_words(list(jd_df['fem_words'].apply(lambda d: list(d.keys())).sum()),
                                                   highlighted_paragraph, '#ffd1dc')
