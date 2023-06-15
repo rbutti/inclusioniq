@@ -14,6 +14,7 @@ import classifier as cs
 import seaborn as sns
 import operator
 import re
+import PIL.Image
 import matplotlib
 from matplotlib import cm
 from matplotlib import pyplot as plt
@@ -223,36 +224,49 @@ def gauge(labels=['LOW', 'MEDIUM', 'HIGH', 'VERY HIGH', 'EXTREME'], colors='jet_
     ax.axis('equal')
 
     return fig
-
+# CSS styles to center the logo
+custom_css = """
+.sidebar .sidebar-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+"""
 
 def main():
-    # Set page title and layout
     st.set_page_config(page_title='InclusionIQ', layout='wide')
+    st.image("images/innovationweeklogo.png", use_column_width=True)
+    image = PIL.Image.open("images/InclusionIQ.png")
+    # Reduce the size of the image
+    new_size = (image.size[0] // 2, image.size[1] // 2)
+    resized_image = image.resize(new_size)
 
+    st.sidebar.image(resized_image, use_column_width=False)
     # Left panel
-    st.sidebar.title('InclusionIQ')
+    st.sidebar.markdown("<span style='color:Blue;'>A machine learning tool to enhance diversity and inclusion in hiring processes by detecting and eliminating bias in job descriptions.</span>", unsafe_allow_html=True)
     job_title = st.sidebar.text_input('Job Title')
     job_description = st.sidebar.text_area('Job Description')
-    submit_button = st.sidebar.button('Submit')
+    submit_button = st.sidebar.button('**Submit**')
 
     # Right panel
-    st.title('Word Cloud')
     if submit_button:
         df_jobs = convert_to_dataframe(job_title, job_description)
         generate_word_cloud(job_description)
+        st.title('Data analysis')
         df_jobs_analysis = analyze_dataframe(df_jobs)
         femdict, masdict = cs.get_gender_dict(df_jobs_analysis)
         df_jobs_analysis['difference'] = df_jobs_analysis["fem_wc"] - df_jobs_analysis['mas_wc']
         st.write(df_jobs_analysis)
         plot_gender_wordcloud(femdict, masdict)
         df_jobs_analysis['unconscious_bias'] = df_jobs_analysis.apply(lambda x: cs.find_score(x), axis=1)
-        st.write("Diversity Score :"+str(df_jobs_analysis['unconscious_bias'][0]))
+        st.sidebar.write("<b>Diversity Score :</b> <span style='color: blue;'>" + str(df_jobs_analysis['unconscious_bias'][0]) + "</span>", unsafe_allow_html=True)
 
         cols = ['#007A00', '#0063BF', '#FFCC00', '#e58722', '#d6202f', '#007A00', '#0063BF', '#FFCC00', '#e58722',
                 '#d6202f']
         labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
         fig1 = gauge(labels=labels, colors=cols, arrow=int(df_jobs_analysis['unconscious_bias'][0]), title='Benefits Specialist (Bias: 8.8 / 10)')
-        st.pyplot(fig1)
+        st.sidebar.pyplot(fig1)
         with open("inclusioniq_model.pkl", 'rb') as model_file:
             model = pickle.load(model_file)
         with open("vectorizer_dump.pkl", 'rb') as vectorizer_dump:
