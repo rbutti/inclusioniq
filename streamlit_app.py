@@ -1,34 +1,21 @@
-import streamlit as st
 from wordcloud import WordCloud
-import matplotlib.pyplot as plt
 import pickle
 import pandas as pd
-import re
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.pipeline import FeatureUnion
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-import xgboost as xgb
 import classifier as cs
 import seaborn as sns
 import operator
 import re
 import PIL.Image
-import matplotlib
-from matplotlib import cm
-from matplotlib import pyplot as plt
-from matplotlib.patches import Circle, Wedge, Rectangle
 import streamlit as st
 import matplotlib.pyplot as plt
 from matplotlib.patches import Wedge, Rectangle, Circle
 import numpy as np
 import matplotlib.cm as cm
 import eli5
-import streamlit.components.v1 as components
 from matplotlib.collections import PatchCollection
-from streamlit import components
-import html
+import processor as p
+import WordsConverter as w
+from IPython.display import display, HTML
 
 
 # all the method start with _ sign are used
@@ -46,39 +33,6 @@ def generate_word_cloud(job_description):
 
     # Render the plot in Streamlit
     st.pyplot(plt)
-
-
-
-def convert_to_dataframe(title,job_description):
-  df = pd.DataFrame(columns=['JOB_CLASS_TITLE', 'JOB_DUTIES', 'REQUIREMENTS','ORIGINAL_JOB_DESCRIPTION'])
-  try:
-    # Extract job details using regex
-    # job_title = re.search(r"(.+),", job_description).group(1).strip()
-    job_title = title
-
-    # Extract job responsibilities using regex
-    responsibilities_match = re.search(r"Responsibilities(.*?)Required Qualifications", job_description, re.DOTALL | re.IGNORECASE)
-    job_responsibilities = responsibilities_match.group().strip() if responsibilities_match else None
-
-    qualifications = re.search(r"Required Qualifications(.*?)JPMorgan Chase & Co., one of the oldest financial institutions", job_description, re.DOTALL | re.IGNORECASE)
-    required_qualifications = qualifications.group().strip() if qualifications else None
-
-    # Extract salary using regex
-    salary_match = re.search(r"Salary(.*)", job_description, re.DOTALL | re.IGNORECASE)
-    salary = salary_match.group().strip() if salary_match else None
-
-    # Append the extracted data to the DataFrame
-    data = {
-                'JOB_CLASS_TITLE': job_title,
-                'JOB_DUTIES': job_responsibilities,
-                'REQUIREMENTS': required_qualifications,
-                'ORIGINAL_JOB_DESCRIPTION': job_description
-            }
-    df = pd.concat([df, pd.DataFrame([data])])
-    return df
-  except Exception as e:
-    print(f"An error occurred: {str(e)}")
-    return
 
 
 def analyze_dataframe(df_jobs):
@@ -174,14 +128,6 @@ def gauge(labels=['LOW', 'MEDIUM', 'HIGH', 'VERY HIGH', 'EXTREME'], colors='jet_
 
     labels = labels[::-1]
 
-    # patches = []
-    # for ang, c in zip(ang_range, colors):
-    #     patches.append(Wedge((0., 0.), .4, *ang, facecolor='w', lw=2))
-    #     patches.append(Wedge((0., 0.), .4, *ang, width=0.10, facecolor=c, lw=2, alpha=0.5))
-    # # [ax.add_patch(p) for p in patches]
-    # collection = PatchCollection(patches)
-    # ax.add_collection(collection)
-
     patches = []
     values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # Values to color in heatmap style
     cmap = plt.cm.get_cmap('coolwarm')  # Choose a colormap for the heatmap
@@ -234,6 +180,7 @@ custom_css = """
 }
 """
 
+
 def main():
     st.set_page_config(page_title='InclusionIQ', layout='wide')
     st.image("images/innovationweeklogo.png", use_column_width=True)
@@ -251,37 +198,45 @@ def main():
 
     # Right panel
     if submit_button:
-        df_jobs = convert_to_dataframe(job_title, job_description)
-        generate_word_cloud(job_description)
-        st.title('Data analysis')
-        df_jobs_analysis = analyze_dataframe(df_jobs)
-        femdict, masdict = cs.get_gender_dict(df_jobs_analysis)
-        df_jobs_analysis['difference'] = df_jobs_analysis["fem_wc"] - df_jobs_analysis['mas_wc']
-        st.write(df_jobs_analysis)
-        plot_gender_wordcloud(femdict, masdict)
-        df_jobs_analysis['unconscious_bias'] = df_jobs_analysis.apply(lambda x: cs.find_score(x), axis=1)
-        st.sidebar.write("<b>Diversity Score :</b> <span style='color: blue;'>" + str(df_jobs_analysis['unconscious_bias'][0]) + "</span>", unsafe_allow_html=True)
 
-        cols = ['#007A00', '#0063BF', '#FFCC00', '#e58722', '#d6202f', '#007A00', '#0063BF', '#FFCC00', '#e58722',
-                '#d6202f']
-        labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
-        fig1 = gauge(labels=labels, colors=cols, arrow=int(df_jobs_analysis['unconscious_bias'][0]), title='Benefits Specialist (Bias: 8.8 / 10)')
-        st.sidebar.pyplot(fig1)
-        with open("inclusioniq_model.pkl", 'rb') as model_file:
-            model = pickle.load(model_file)
-        with open("vectorizer_dump.pkl", 'rb') as vectorizer_dump:
-            vectorizer = pickle.load(vectorizer_dump)
+        generate_word_cloud(job_description)
+
+        st.title('Data analysis Report')
+        jd_df = p.convert_to_dataframe(p.cleanup(job_title), p.cleanup(job_description))
+        jd_df = p.evaluate_dataframe(jd_df)
+
+        #show table
+        st.header('Tabular Data')
+        analysis_df= p.analysis_result_df(jd_df)
+        st.dataframe(analysis_df)
+
+        #show wordcloud
+        st.header('WordCloud')
+        generate_word_cloud(' '.join(analysis_df['Words'].explode()))
+
+        #show wordcloud
+        # femdict, masdict = cs.get_gender_dict(df_jobs_analysis)
+        # df_jobs_analysis['difference'] = df_jobs_analysis["fem_wc"] - df_jobs_analysis['mas_wc']
+        # st.write(df_jobs_analysis)
+        # plot_gender_wordcloud(femdict, masdict)
+        # df_jobs_analysis['unconscious_bias'] = df_jobs_analysis.apply(lambda x: cs.find_score(x), axis=1)
+        # st.sidebar.write("<b>Diversity Score :</b> <span style='color: blue;'>" + str(df_jobs_analysis['unconscious_bias'][0]) + "</span>", unsafe_allow_html=True)
+        #
+        # cols = ['#007A00', '#0063BF', '#FFCC00', '#e58722', '#d6202f', '#007A00', '#0063BF', '#FFCC00', '#e58722',
+        #         '#d6202f']
+        # labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+        # fig1 = gauge(labels=labels, colors=cols, arrow=int(df_jobs_analysis['unconscious_bias'][0]), title='Benefits Specialist (Bias: 8.8 / 10)')
+        # st.sidebar.pyplot(fig1)
+        # with open("inclusioniq_model.pkl", 'rb') as model_file:
+        #     model = pickle.load(model_file)
+        # with open("vectorizer_dump.pkl", 'rb') as vectorizer_dump:
+        #     vectorizer = pickle.load(vectorizer_dump)
 
         # Assume `prediction_html` is the string containing HTML code
-        prediction_html = eli5.show_prediction(model, doc=job_description, vec=vectorizer,
-                                               feature_names=vectorizer.get_feature_names_out(),
-                                               top=(20, 20), show_feature_values=True)
+        # prediction_html = eli5.show_prediction(model, doc=job_description, vec=vectorizer,
+        #                                        feature_names=vectorizer.get_feature_names_out(),
+        #                                        top=(20, 20), show_feature_values=True)
 
-        # raw_html = prediction_html._repr_html_()
-        #
-        # raw_html= raw_html.encode("utf-8")
-        #
-        # components.v1.html(raw_html)
 
         table_style = """
         <style>
@@ -308,10 +263,10 @@ def main():
         """
 
         # Display the tables with custom CSS styling
-        st.markdown(table_style, unsafe_allow_html=True)
-
-        res = prediction_html.data.replace("\n", "")
-        st.markdown(res, unsafe_allow_html=True)
+        # st.markdown(table_style, unsafe_allow_html=True)
+        #
+        # res = prediction_html.data.replace("\n", "")
+        # st.markdown(res, unsafe_allow_html=True)
 
 
 
