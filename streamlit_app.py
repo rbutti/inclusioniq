@@ -15,6 +15,7 @@ import eli5
 from matplotlib.collections import PatchCollection
 import processor as p
 import WordsConverter as w
+import streamlit.components.v1 as components
 from sklearn.feature_extraction.text import TfidfVectorizer
 from IPython.display import display, HTML
 
@@ -182,15 +183,42 @@ custom_css = """
 """
 
 
+# Define a function to inject JavaScript code
+def move_sidebar_down():
+    javascript_code = """
+        <script>
+            // Get the sidebar element
+            var sidebar = document.getElementsByClassName("sidebar")[0];
+
+            // Move the sidebar down
+            sidebar.style.marginTop = "50px"; // Adjust the value as needed
+        </script>
+    """
+    components.html(javascript_code)
+
+
 def main():
     st.set_page_config(page_title='InclusionIQ', layout='wide')
     st.image("images/innovationweeklogo.png", use_column_width=True)
-    image = PIL.Image.open("images/InclusionIQ.png")
+    image = PIL.Image.open("images/Logo.png")
     # Reduce the size of the image
-    new_size = (image.size[0] // 2, image.size[1] // 2)
+    new_size = (image.size[0] // 1, image.size[1] // 1)
+
+    css_code = """
+            <style>
+                /* Reduce the space between image and text in the sidebar */
+                .sidebar .markdown-textContainer {
+                    margin-top: 5px; /* Adjust the value as needed */
+                }
+                .sidebar .image-container {
+                    margin-bottom: 5px; /* Adjust the value as needed */
+                }
+            </style>
+        """
+    components.html(css_code)
     resized_image = image.resize(new_size)
 
-    st.sidebar.image(resized_image, use_column_width=False)
+    st.sidebar.image(resized_image, use_column_width=True)
     # Left panel
     st.sidebar.markdown("<span style='color:Blue;'>A machine learning tool to enhance diversity and inclusion in hiring processes by detecting and eliminating bias in job descriptions.</span>", unsafe_allow_html=True)
     job_title = st.sidebar.text_input('Job Title')
@@ -199,7 +227,7 @@ def main():
 
     # Right panel
     if submit_button:
-
+        move_sidebar_down()
         generate_word_cloud(job_description)
 
         st.title('Data analysis Report')
