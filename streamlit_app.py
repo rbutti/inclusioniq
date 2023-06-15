@@ -200,7 +200,7 @@ def move_sidebar_down():
 def main():
     st.set_page_config(page_title='InclusionIQ', layout='wide')
     st.image("images/innovationweeklogo.png", use_column_width=True)
-    image = PIL.Image.open("images/Logo.png")
+    image = PIL.Image.open("images/Logo2.png")
     # Reduce the size of the image
     new_size = (image.size[0] // 1, image.size[1] // 1)
 
@@ -220,7 +220,7 @@ def main():
 
     st.sidebar.image(resized_image, use_column_width=True)
     # Left panel
-    st.sidebar.markdown("<span style='color:Blue;'>A machine learning tool to enhance diversity and inclusion in hiring processes by detecting and eliminating bias in job descriptions.</span>", unsafe_allow_html=True)
+    st.sidebar.markdown("<span style='color:Black; text-align:justify;'>A machine learning tool to enhance diversity and inclusion in hiring processes by detecting and eliminating bias in job descriptions.</span>", unsafe_allow_html=True)
     job_title = st.sidebar.text_input('Job Title')
     job_description = st.sidebar.text_area('Job Description')
     submit_button = st.sidebar.button('**Submit**')
