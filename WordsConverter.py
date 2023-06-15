@@ -17,16 +17,12 @@ import pickle
 #
 #     return highlighted_paragraph
 
-def highlight_words(words, paragraph):
+def highlight_words(words, paragraph, color):
     highlighted_paragraph = paragraph
-    st.write(paragraph)
-    st.write(words)
 
     for word in words:
-        pattern = re.compile(f'({word})', re.IGNORECASE)
-        highlighted_paragraph = pattern.sub(r'<mark>\1</mark>', highlighted_paragraph)
-
-    st.write(highlighted_paragraph)
+        pattern = re.compile(fr'\b({re.escape(word)})\b', re.IGNORECASE)
+        highlighted_paragraph = pattern.sub(fr'<span style="background-color: {color};">\1</span>', highlighted_paragraph)
     return highlighted_paragraph
 
 

@@ -15,6 +15,7 @@ import eli5
 from matplotlib.collections import PatchCollection
 import processor as p
 import WordsConverter as w
+from sklearn.feature_extraction.text import TfidfVectorizer
 from IPython.display import display, HTML
 
 
@@ -218,16 +219,46 @@ def main():
         analysis_df= p.analysis_result_df(jd_df)
         st.dataframe(analysis_df)
 
+
         #show wordcloud
         st.header('WordCloud')
         generate_word_cloud(' '.join(analysis_df['Words'].explode()))
 
+        # show jobdescirption
+        st.header('Job Description')
+        highlighted_paragraph = w.highlight_words(list(jd_df['mas_words'].apply(lambda d: list(d.keys())).sum()),job_description, '#ffffcc')
+        highlighted_paragraph = w.highlight_words(list(jd_df['fem_words'].apply(lambda d: list(d.keys())).sum()),
+                                                  highlighted_paragraph, '#ffd1dc')
+        highlighted_paragraph = w.highlight_words(list(jd_df['superlatives_wrds'].apply(lambda d: list(d.keys())).sum()),
+                                                  highlighted_paragraph, '#bfefff')
+        highlighted_paragraph = w.highlight_words(list(jd_df['rel_words'].apply(lambda d: list(d.keys())).sum()),
+                                                  highlighted_paragraph, '#d9f5d1')
+        highlighted_paragraph = w.highlight_words(list(jd_df['strict_words'].apply(lambda d: list(d.keys())).sum()),
+                                                  highlighted_paragraph, '#e9d8fd')
+        highlighted_paragraph = w.highlight_words(
+            list(jd_df['strict_phrases'].apply(lambda d: list(d.keys())).sum()),
+            highlighted_paragraph, '#ffe0b2')
+        highlighted_paragraph = w.highlight_words(list(jd_df['mas_pronouns'].apply(lambda d: list(d.keys())).sum()),
+                                                  highlighted_paragraph, '#f5f5f5')
+        highlighted_paragraph = w.highlight_words(list(jd_df['fem_pronouns'].apply(lambda d: list(d.keys())).sum()),
+                                                  highlighted_paragraph, '#e0ffff')
+        highlighted_paragraph = w.highlight_words(
+            list(jd_df['exclusive_language_wrds'].apply(lambda d: list(d.keys())).sum()),
+            highlighted_paragraph, '#e6e6fa')
+        highlighted_paragraph = w.highlight_words(list(jd_df['lgbtq_words'].apply(lambda d: list(d.keys())).sum()),
+                                                  highlighted_paragraph, '#f08080')
+        highlighted_paragraph = w.highlight_words(list(jd_df['racial_words'].apply(lambda d: list(d.keys())).sum()),
+                                                  highlighted_paragraph, '#d0f0c0')
+        st.markdown(highlighted_paragraph, unsafe_allow_html=True)
+
 
         st.title('InclusionIQ Model Report')
+
         with open("models/inclusioniq_model.pkl", 'rb') as model_file:
             model = pickle.load(model_file)
         with open("models/vectorizer_bestmodel.pkl", 'rb') as vectorizer_dump:
             vectorizer = pickle.load(vectorizer_dump)
+
 
         prediction_html = eli5.show_prediction(model, doc=job_description, vec=vectorizer,
                                                feature_names=vectorizer.get_feature_names_out(),
@@ -263,36 +294,6 @@ def main():
         res = prediction_html.data.replace("\n", "")
         st.markdown(res, unsafe_allow_html=True)
 
-        #show jd
-        # highlighted_paragraph = w.highlight_words(np.concatenate(analysis_df['Words'].values),jd_df['job_description_txt'][0])
-        # st.write(highlighted_paragraph)
-
-        # words_array = []
-        # for column in jd_df.columns:
-        #     for dictionary in jd_df[column]:
-        #         words_array.extend(dictionary.keys())
-        #
-        # st.write(words_array)
-        #st.markdown(w.highlight_words(np.concatenate(analysis_df['Words'].values),jd_df['job_description_txt'][0]), unsafe_allow_html=True)
-        # femdict, masdict = cs.get_gender_dict(df_jobs_analysis)
-        # df_jobs_analysis['difference'] = df_jobs_analysis["fem_wc"] - df_jobs_analysis['mas_wc']
-        # st.write(df_jobs_analysis)
-        # plot_gender_wordcloud(femdict, masdict)
-        # df_jobs_analysis['unconscious_bias'] = df_jobs_analysis.apply(lambda x: cs.find_score(x), axis=1)
-        # st.sidebar.write("<b>Diversity Score :</b> <span style='color: blue;'>" + str(df_jobs_analysis['unconscious_bias'][0]) + "</span>", unsafe_allow_html=True)
-        #
-
-        # with open("inclusioniq_model.pkl", 'rb') as model_file:
-        #     model = pickle.load(model_file)
-        # with open("vectorizer_dump.pkl", 'rb') as vectorizer_dump:
-        #     vectorizer = pickle.load(vectorizer_dump)
-
-        # Assume `prediction_html` is the string containing HTML code
-        # prediction_html = eli5.show_prediction(model, doc=job_description, vec=vectorizer,
-        #                                        feature_names=vectorizer.get_feature_names_out(),
-        #                                        top=(20, 20), show_feature_values=True)
-
-
         table_style = """
         <style>
         table {
@@ -317,18 +318,6 @@ def main():
         </style>
         """
 
-        # Display the tables with custom CSS styling
-        # st.markdown(table_style, unsafe_allow_html=True)
-        #
-        # res = prediction_html.data.replace("\n", "")
-        # st.markdown(res, unsafe_allow_html=True)
-
-
-
-
-        # st.markdown(eli5.show_prediction(model, doc=job_description, vec=vectorizer,
-        #                               feature_names=vectorizer.get_feature_names_out(),
-        #                               top=(20, 20)))
 
 if __name__ == '__main__':
     main()

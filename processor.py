@@ -222,4 +222,19 @@ def analysis_result_df(jd_df):
 
     return df
 
+def words_list(jd_df):
+    keys_list = list(jd_df['mas_words'].apply(lambda d: list(d.keys())).sum())
+    keys_list += list(jd_df['fem_words'].apply(lambda d: list(d.keys())).sum())
+    keys_list += list(jd_df['superlatives_wrds'].apply(lambda d: list(d.keys())).sum())
+    keys_list += list(jd_df['rel_words'].apply(lambda d: list(d.keys())).sum())
+    keys_list += list(jd_df['strict_words'].apply(lambda d: list(d.keys())).sum())
+    keys_list += list(jd_df['strict_phrases'].apply(lambda d: list(d.keys())).sum())
+    keys_list += list(jd_df['mas_pronouns'].apply(lambda d: list(d.keys())).sum())
+    keys_list += list(jd_df['fem_pronouns'].apply(lambda d: list(d.keys())).sum())
+    keys_list += list(jd_df['exclusive_language_wrds'].apply(lambda d: list(d.keys())).sum())
+    keys_list += list(jd_df['lgbtq_words'].apply(lambda d: list(d.keys())).sum())
+    keys_list += list(jd_df['racial_words'].apply(lambda d: list(d.keys())).sum())
+
+    return keys_list
+
 
