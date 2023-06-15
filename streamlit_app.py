@@ -205,6 +205,14 @@ def main():
         jd_df = p.convert_to_dataframe(p.cleanup(job_title), p.cleanup(job_description))
         jd_df = p.evaluate_dataframe(jd_df)
 
+        #update left nav
+        cols = ['#007A00', '#0063BF', '#FFCC00', '#e58722', '#d6202f', '#007A00', '#0063BF', '#FFCC00', '#e58722',
+                '#d6202f']
+        labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+        fig1 = gauge(labels=labels, colors=cols, arrow=int(jd_df['bias_score'][0]),
+                     title=f"Bias Score: {jd_df['bias_score'][0]} / 10")
+        st.sidebar.pyplot(fig1)
+
         #show table
         st.header('Tabular Data')
         analysis_df= p.analysis_result_df(jd_df)
@@ -214,7 +222,58 @@ def main():
         st.header('WordCloud')
         generate_word_cloud(' '.join(analysis_df['Words'].explode()))
 
-        #show wordcloud
+
+        st.title('InclusionIQ Model Report')
+        with open("models/inclusioniq_model.pkl", 'rb') as model_file:
+            model = pickle.load(model_file)
+        with open("models/vectorizer_bestmodel.pkl", 'rb') as vectorizer_dump:
+            vectorizer = pickle.load(vectorizer_dump)
+
+        prediction_html = eli5.show_prediction(model, doc=job_description, vec=vectorizer,
+                                               feature_names=vectorizer.get_feature_names_out(),
+                                               top=(20, 20), show_feature_values=True)
+
+        table_style = """
+                <style>
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                }
+
+                th, td {
+                    padding: 8px;
+                    text-align: left;
+                }
+
+                tr:nth-child(even) {
+                    background-color: green;
+                    color: black;
+                }
+
+                tr:nth-child(odd) {
+                    background-color: white;
+                    color: black;
+                }
+                </style>
+                """
+
+        #Display the tables with custom CSS styling
+        st.markdown(table_style, unsafe_allow_html=True)
+
+        res = prediction_html.data.replace("\n", "")
+        st.markdown(res, unsafe_allow_html=True)
+
+        #show jd
+        # highlighted_paragraph = w.highlight_words(np.concatenate(analysis_df['Words'].values),jd_df['job_description_txt'][0])
+        # st.write(highlighted_paragraph)
+
+        # words_array = []
+        # for column in jd_df.columns:
+        #     for dictionary in jd_df[column]:
+        #         words_array.extend(dictionary.keys())
+        #
+        # st.write(words_array)
+        #st.markdown(w.highlight_words(np.concatenate(analysis_df['Words'].values),jd_df['job_description_txt'][0]), unsafe_allow_html=True)
         # femdict, masdict = cs.get_gender_dict(df_jobs_analysis)
         # df_jobs_analysis['difference'] = df_jobs_analysis["fem_wc"] - df_jobs_analysis['mas_wc']
         # st.write(df_jobs_analysis)
@@ -222,11 +281,7 @@ def main():
         # df_jobs_analysis['unconscious_bias'] = df_jobs_analysis.apply(lambda x: cs.find_score(x), axis=1)
         # st.sidebar.write("<b>Diversity Score :</b> <span style='color: blue;'>" + str(df_jobs_analysis['unconscious_bias'][0]) + "</span>", unsafe_allow_html=True)
         #
-        # cols = ['#007A00', '#0063BF', '#FFCC00', '#e58722', '#d6202f', '#007A00', '#0063BF', '#FFCC00', '#e58722',
-        #         '#d6202f']
-        # labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
-        # fig1 = gauge(labels=labels, colors=cols, arrow=int(df_jobs_analysis['unconscious_bias'][0]), title='Benefits Specialist (Bias: 8.8 / 10)')
-        # st.sidebar.pyplot(fig1)
+
         # with open("inclusioniq_model.pkl", 'rb') as model_file:
         #     model = pickle.load(model_file)
         # with open("vectorizer_dump.pkl", 'rb') as vectorizer_dump:
