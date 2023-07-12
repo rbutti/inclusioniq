@@ -203,19 +203,6 @@ def main():
     image = PIL.Image.open("images/Logo2.png")
     # Reduce the size of the image
     new_size = (image.size[0] // 1, image.size[1] // 1)
-
-    css_code = """
-            <style>
-                /* Reduce the space between image and text in the sidebar */
-                .sidebar .markdown-textContainer {
-                    margin-top: 5px; /* Adjust the value as needed */
-                }
-                .sidebar .image-container {
-                    margin-bottom: 5px; /* Adjust the value as needed */
-                }
-            </style>
-        """
-    components.html(css_code)
     resized_image = image.resize(new_size)
 
     st.sidebar.image(resized_image, use_column_width=True)
@@ -228,7 +215,6 @@ def main():
 
     # Right panel
     if submit_button:
-        move_sidebar_down()
         generate_word_cloud(job_description)
 
         st.title('Data analysis Report')
